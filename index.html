@@ -6,7 +6,9 @@
   <title>HEMA Space Passport — Kurdistan Astronomy Festival 2026</title>
   <meta name="description" content="Create your personal HEMA Space Passport at the Kurdistan Astronomy Festival 2026.">
   <meta name="theme-color" content="#05080f">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preload" href="assets/hema-logo.png" as="image">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -15,9 +17,7 @@
 
   <header class="topbar">
     <a class="brand" href="#" data-action="home" aria-label="HEMA Astronomical Organization — start over">
-      <span class="brand-mark" data-logo="hema">
-        <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#emblem"/></svg>
-      </span>
+      <span class="brand-mark"><img src="assets/hema-logo.png" alt="" width="52" height="52"></span>
       <span class="brand-text"><strong>HEMA</strong><small>Astronomical Organization</small></span>
     </a>
     <div class="event-tag">
@@ -37,6 +37,7 @@
     <section class="screen screen-welcome is-active" id="screen-welcome" aria-labelledby="welcome-title">
       <div class="hero">
         <div class="hero-copy">
+          <img class="hero-logo" src="assets/hema-logo.png" alt="HEMA Astronomical Organization" width="112" height="112">
           <p class="hero-chip"><span>Passport office open</span><b>KAF 2026</b></p>
           <h1 id="welcome-title" class="display">Space <span class="display-accent">Passport</span></h1>
           <p class="lede">Your journey beyond Earth begins here. Choose a destination, a mission and your own callsign, and receive an official HEMA travel document.</p>
@@ -230,10 +231,8 @@
     </button>
   </dialog>
 
-  <!-- fallback emblem, replaced automatically when assets/hema-logo.png exists -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
-      <linearGradient id="emblem-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1dca6"/><stop offset="1" stop-color="#9c7a38"/></linearGradient>
       <symbol id="icon-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
       <symbol id="icon-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></g></symbol>
       <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 2.5c.6 4.8 1.9 7.4 9.5 9.5-7.6 2.1-8.9 4.7-9.5 9.5-.6-4.8-1.9-7.4-9.5-9.5 7.6-2.1 8.9-4.7 9.5-9.5z" fill="currentColor"/></symbol>
@@ -243,13 +242,6 @@
       <symbol id="icon-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6"/></g></symbol>
       <symbol id="icon-rocket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c3.2 2.2 4.8 5.6 4.8 9.6v3.4H7.2v-3.4c0-4 1.6-7.4 4.8-9.6z"/><circle cx="12" cy="9.5" r="1.8"/><path d="M7.2 12.8 4.5 15.5v3h2.7M16.8 12.8l2.7 2.7v3h-2.7M10 18.5c0 1.6.8 2.6 2 3.3 1.2-.7 2-1.7 2-3.3"/></g></symbol>
       <symbol id="icon-passport" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.2"/><circle cx="12" cy="10" r="3.4"/><path d="M8.6 10h6.8M12 6.6c-1.2 1-1.2 5.8 0 6.8M12 6.6c1.2 1 1.2 5.8 0 6.8M9 17.5h6"/></g></symbol>
-      <symbol id="emblem" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="29" fill="none" stroke="url(#emblem-gold)" stroke-width="2.4"/>
-        <circle cx="32" cy="32" r="24.5" fill="none" stroke="url(#emblem-gold)" stroke-width="0.8"/>
-        <ellipse cx="32" cy="32" rx="21" ry="8" fill="none" stroke="url(#emblem-gold)" stroke-width="1.4" transform="rotate(-26 32 32)"/>
-        <circle cx="32" cy="32" r="6" fill="url(#emblem-gold)"/>
-        <path d="M45 13c0 4 1 5 5 5-4 0-5 1-5 5 0-4-1-5-5-5 4 0 5-1 5-5z" fill="url(#emblem-gold)"/>
-      </symbol>
     </defs>
   </svg>
 

@@ -24,9 +24,6 @@
   async function loadLogos() {
     const [hema, kaf] = await Promise.all([H.loadImage(H.CONFIG.LOGO_HEMA), H.loadImage(H.CONFIG.LOGO_FESTIVAL)]);
     state.logos = { hema, kaf };
-    if (hema) {
-      $$('[data-logo="hema"]').forEach((m) => { m.innerHTML = ''; const img = hema.cloneNode(); img.alt = ''; m.append(img); m.hidden = false; });
-    }
     if (kaf) { const m = $('[data-logo="kaf"]'); m.innerHTML = ''; const img = kaf.cloneNode(); img.alt = ''; m.append(img); m.hidden = false; }
     renderSpecimen();
   }

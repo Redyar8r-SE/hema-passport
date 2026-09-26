@@ -128,6 +128,10 @@ main { position: relative; z-index: 1; }
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); align-items: center; gap: clamp(32px, 5vw, 80px);
 }
 .hero-copy { max-width: 620px; }
+.hero-logo {
+  display: block; width: clamp(84px, 12vh, 124px); height: auto; margin: 0 0 24px;
+  filter: drop-shadow(0 12px 36px rgba(58, 143, 208, 0.4));
+}
 .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: clamp(28px, 5vh, 44px); }
 .hero-steps {
   list-style: none; margin: clamp(32px, 6vh, 52px) 0 0; padding: 0;
@@ -177,6 +181,7 @@ main { position: relative; z-index: 1; }
 @media (max-width: 1080px) {
   .hero { grid-template-columns: 1fr; text-align: center; }
   .hero-copy { max-width: 720px; margin: 0 auto; }
+  .hero-logo { margin-left: auto; margin-right: auto; }
   .hero-cta { justify-content: center; }
   .hero-steps { text-align: left; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-visual { max-width: 720px; width: 100%; margin: 0 auto; }
