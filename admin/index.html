@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HEMA Passport Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#05080f">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../fonts/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+  <!-- SIGN IN -->
+  <main class="login" id="login" hidden>
+    <form class="login-card" id="login-form">
+      <img class="login-logo" src="../assets/hema-logo.png" alt="HEMA Astronomical Organization">
+      <h1>Passport admin</h1>
+      <p class="hint">Sign in to see every passport issued at the festival.</p>
+      <label class="field">
+        <span class="field-label">Email</span>
+        <input type="email" id="email" autocomplete="username" inputmode="email" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </label>
+      <p class="login-error" id="login-error" role="alert" hidden></p>
+      <button class="btn btn-primary btn-lg" type="submit">Sign in</button>
+      <a class="login-back" href="../">Back to the passport site</a>
+    </form>
+  </main>
+
+  <!-- DATABASE NOT CONNECTED YET -->
+  <main class="login" id="setup" hidden>
+    <div class="login-card">
+      <img class="login-logo" src="../assets/hema-logo.png" alt="HEMA Astronomical Organization">
+      <h1>Database not connected</h1>
+      <p class="hint">Add your Supabase address and key to <code>js/config.js</code>, as described in the README under "Set up the database". Then reload this page.</p>
+      <a class="btn btn-ghost btn-lg" href="../">Back to the passport site</a>
+    </div>
+  </main>
+
+  <!-- DASHBOARD -->
+  <div class="dash" id="dash" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark"><img src="../assets/hema-logo.png" alt=""></span>
+        <span class="brand-text"><strong>HEMA</strong><small id="who">Passport admin</small></span>
+      </div>
+      <div class="dash-actions">
+        <span class="live" id="live" title="The list refreshes automatically">Live</span>
+        <button class="btn btn-ghost btn-sm" id="export" type="button">
+          <svg class="ico" aria-hidden="true"><use href="#i-download"/></svg><span>Export CSV</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="logout" type="button">
+          <svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg><span>Sign out</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <p class="notice" id="not-admin" hidden>This account is signed in but is not on the admin list, so no passports are shown. Sign out and use the admin email, or add this email to the admins table (see README).</p>
+      <section class="stats" aria-label="Summary">
+        <div class="stat"><span class="stat-label">Passports issued</span><strong id="s-total">0</strong></div>
+        <div class="stat"><span class="stat-label">Issued today</span><strong id="s-today">0</strong></div>
+        <div class="stat"><span class="stat-label">With photo</span><strong id="s-photo">0</strong></div>
+        <div class="stat"><span class="stat-label">Average age</span><strong id="s-age">–</strong></div>
+      </section>
+
+      <section class="breakdowns">
+        <div class="card">
+          <h2 class="card-title">Destinations</h2>
+          <ul class="bars" id="b-dest"></ul>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Mission roles</h2>
+          <ul class="bars" id="b-role"></ul>
+        </div>
+      </section>
+
+      <section class="card records">
+        <div class="records-head">
+          <h2 class="card-title">Passports <span class="count" id="count"></span></h2>
+          <label class="search">
+            <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+            <input type="search" id="search" placeholder="Search name, number, callsign or city" autocomplete="off" aria-label="Search passports">
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col"><span class="visually-hidden">Photo</span></th>
+                <th scope="col">Passport no.</th>
+                <th scope="col">Name</th>
+                <th scope="col">Age</th>
+                <th scope="col">City / Country</th>
+                <th scope="col">Callsign</th>
+                <th scope="col">Destination</th>
+                <th scope="col">Role</th>
+                <th scope="col">Issued</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="empty" hidden>No passports yet. They appear here as soon as visitors create them.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- DETAIL -->
+  <dialog class="detail" id="detail" aria-labelledby="d-name">
+    <div class="detail-box">
+      <div class="detail-head">
+        <div>
+          <p class="d-number" id="d-number"></p>
+          <h2 id="d-name"></h2>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="Close">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <canvas class="passport-canvas d-passport" id="d-passport" role="img" aria-label="Passport"></canvas>
+      <dl class="d-fields" id="d-fields"></dl>
+      <div class="detail-actions">
+        <button class="btn btn-ghost btn-danger" type="button" id="d-delete">Delete</button>
+        <button class="btn btn-primary" type="button" id="d-download">Download passport</button>
+      </div>
+    </div>
+  </dialog>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4.5 15v3a2.5 2.5 0 0 0 2.5 2.5h10a2.5 2.5 0 0 0 2.5-2.5v-3"/></g></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H7A2.5 2.5 0 0 0 4.5 7v10A2.5 2.5 0 0 0 7 19.5h7M16 8l4 4-4 4M20 12H10"/></g></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></g></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6"/></g></symbol>
+    </defs>
+  </svg>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/render.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

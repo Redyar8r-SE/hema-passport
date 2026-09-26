@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HEMA Space Passport — Kurdistan Astronomy Festival 2026</title>
+  <meta name="description" content="Create your personal HEMA Space Passport at the Kurdistan Astronomy Festival 2026.">
+  <meta name="theme-color" content="#05080f">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="starfield" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="brand" href="#" data-action="home" aria-label="HEMA Astronomical Organization — start over">
+      <span class="brand-mark" data-logo="hema">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#emblem"/></svg>
+      </span>
+      <span class="brand-text"><strong>HEMA</strong><small>Astronomical Organization</small></span>
+    </a>
+    <div class="event-tag">
+      <div class="event-text">
+        <strong>Kurdistan Astronomy Festival 2026</strong>
+        <div class="event-facts">
+          <span class="fact"><svg class="ico" aria-hidden="true"><use href="#icon-cal"/></svg>25–26 September 2026</span>
+          <span class="fact"><svg class="ico" aria-hidden="true"><use href="#icon-pin"/></svg>YouthHub, Erbil</span>
+        </div>
+      </div>
+      <span class="event-mark" data-logo="kaf" hidden></span>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- 1 · WELCOME -->
+    <section class="screen screen-welcome is-active" id="screen-welcome" aria-labelledby="welcome-title">
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="hero-chip"><span>Passport office open</span><b>KAF 2026</b></p>
+          <h1 id="welcome-title" class="display">Space <span class="display-accent">Passport</span></h1>
+          <p class="lede">Your journey beyond Earth begins here. Choose a destination, a mission and your own callsign, and receive an official HEMA travel document.</p>
+          <div class="hero-cta">
+            <button class="btn btn-primary btn-xl" data-action="start">Create space passport <span aria-hidden="true">→</span></button>
+          </div>
+          <ol class="hero-steps" aria-label="How it works">
+            <li>
+              <span class="step-ico"><svg aria-hidden="true"><use href="#icon-user"/></svg></span>
+              <b>Step 1</b><strong>Your details</strong><small>Name, age and photo</small>
+            </li>
+            <li>
+              <span class="step-ico"><svg aria-hidden="true"><use href="#icon-rocket"/></svg></span>
+              <b>Step 2</b><strong>Your mission</strong><small>Destination, role and callsign</small>
+            </li>
+            <li>
+              <span class="step-ico"><svg aria-hidden="true"><use href="#icon-passport"/></svg></span>
+              <b>Step 3</b><strong>Your passport</strong><small>Issued instantly to download</small>
+            </li>
+          </ol>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-glow"></div>
+          <div class="specimen">
+            <canvas id="specimen-canvas" class="passport-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <span class="fact"><svg class="ico" aria-hidden="true"><use href="#icon-star"/></svg>Kurdistan Astronomy Festival 2026</span>
+        <span class="fact"><svg class="ico" aria-hidden="true"><use href="#icon-cal"/></svg>25–26 September 2026</span>
+        <span class="fact"><svg class="ico" aria-hidden="true"><use href="#icon-pin"/></svg>YouthHub, Erbil</span>
+      </div>
+    </section>
+
+    <!-- 2 · PERSONAL INFORMATION -->
+    <section class="screen" id="screen-personal" aria-labelledby="personal-title">
+      <div class="panel">
+        <ol class="progress" aria-label="Progress">
+          <li class="is-current" aria-current="step"><i>1</i><span>Your details</span></li>
+          <li><i>2</i><span>Your mission</span></li>
+          <li><i>3</i><span>Your passport</span></li>
+        </ol>
+        <h2 id="personal-title" class="title">Personal information</h2>
+        <p class="hint">Traveller identification for your interplanetary document.</p>
+
+        <form id="form-personal" class="grid-personal" novalidate>
+          <div class="photo-field">
+            <span class="field-label">Photo</span>
+            <label class="photo-frame" id="photo-frame" for="photo-upload" title="Upload a photo">
+              <img id="photo-preview" alt="Your passport photo" hidden>
+              <div class="photo-empty" id="photo-empty">
+                <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="24" r="11" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 56c2-11 10-17 20-17s18 6 20 17" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                <span>Tap to add photo</span>
+              </div>
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            </label>
+            <label class="btn btn-ghost photo-upload-btn">
+              <svg class="ico" aria-hidden="true"><use href="#icon-upload"/></svg><span id="photo-upload-label">Upload photo</span>
+              <input type="file" id="photo-upload" accept="image/*" class="visually-hidden">
+            </label>
+          </div>
+
+          <div class="fields">
+            <div class="name-grid">
+              <label class="field">
+                <span class="field-label">First name</span>
+                <input type="text" name="first" id="f-first" dir="auto" autocomplete="given-name" maxlength="24" required placeholder="e.g. Sara">
+                <span class="field-error">Enter your first name.</span>
+              </label>
+              <label class="field">
+                <span class="field-label">Second name</span>
+                <input type="text" name="second" id="f-second" dir="auto" autocomplete="additional-name" maxlength="24" required placeholder="e.g. Ahmed">
+                <span class="field-error">Enter your second name.</span>
+              </label>
+              <label class="field">
+                <span class="field-label">Third name</span>
+                <input type="text" name="third" id="f-third" dir="auto" autocomplete="family-name" maxlength="24" placeholder="e.g. Mohammed">
+              </label>
+            </div>
+            <div class="info-grid">
+              <label class="field">
+                <span class="field-label">Age</span>
+                <input type="text" name="age" id="f-age" inputmode="numeric" maxlength="3" autocomplete="off" required placeholder="e.g. 21">
+                <span class="field-error">Enter an age between 1 and 120.</span>
+              </label>
+              <label class="field">
+                <span class="field-label">City / Country</span>
+                <input type="text" name="origin" id="f-origin" dir="auto" autocomplete="address-level2" maxlength="48" required placeholder="e.g. Erbil, Kurdistan">
+                <span class="field-error">Please enter where you're from.</span>
+              </label>
+            </div>
+          </div>
+        </form>
+
+        <div class="nav-row">
+          <button class="btn btn-ghost" data-action="home">Back</button>
+          <button class="btn btn-primary" data-action="to-identity">Continue <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · SPACE IDENTITY -->
+    <section class="screen" id="screen-identity" aria-labelledby="identity-title">
+      <div class="panel">
+        <ol class="progress" aria-label="Progress">
+          <li class="is-done"><i>1</i><span>Your details</span></li>
+          <li class="is-current" aria-current="step"><i>2</i><span>Your mission</span></li>
+          <li><i>3</i><span>Your passport</span></li>
+        </ol>
+        <h2 id="identity-title" class="title">Space identity</h2>
+        <p class="hint">Define your mission profile.</p>
+
+        <form id="form-identity" novalidate>
+          <fieldset class="block" id="group-dest">
+            <legend><span class="block-idx">A</span>Choose your destination</legend>
+            <div class="dest-grid" id="dest-options"></div>
+            <span class="field-error">Select a destination.</span>
+          </fieldset>
+
+          <fieldset class="block" id="group-role">
+            <legend><span class="block-idx">B</span>Choose your mission role</legend>
+            <div class="chip-grid" id="role-options"></div>
+            <span class="field-error">Select a mission role.</span>
+          </fieldset>
+
+          <fieldset class="block" id="group-mission">
+            <legend><span class="block-idx">C</span>Choose your mission</legend>
+            <div class="chip-grid" id="mission-options"></div>
+            <span class="field-error">Select a mission.</span>
+          </fieldset>
+
+          <fieldset class="block" id="group-callsign">
+            <legend><span class="block-idx">D</span>Choose your space callsign</legend>
+            <div class="callsign-row">
+              <input type="text" id="f-callsign" dir="auto" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Your callsign">
+              <button type="button" class="btn btn-ghost" data-action="gen-callsign">Generate my callsign</button>
+            </div>
+            <span class="field-error">Enter a callsign or generate one.</span>
+          </fieldset>
+
+        </form>
+
+        <div class="nav-row">
+          <button class="btn btn-ghost" data-action="to-personal">Back</button>
+          <button class="btn btn-primary" data-action="generate">Issue my passport <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · GENERATING -->
+    <section class="screen screen-generating" id="screen-generating" aria-live="polite">
+      <div class="gen-inner">
+        <div class="gen-ring" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+        <h2 class="title">Generating your space passport</h2>
+        <div class="gen-progress"><i id="gen-bar"></i></div>
+        <ol class="gen-log" id="gen-log"></ol>
+      </div>
+    </section>
+
+    <!-- 5 · ISSUED -->
+    <section class="screen screen-issued" id="screen-issued" aria-labelledby="issued-title">
+      <div class="issued-head">
+        <p class="hero-chip is-ok"><span>Status</span><b>Approved</b></p>
+        <h2 id="issued-title" class="display display-sm">Passport issued</h2>
+        <p class="lede">Welcome aboard, <strong id="issued-callsign" class="gold"></strong>. Your journey beyond Earth begins here.</p>
+      </div>
+      <button type="button" class="passport-stage" data-action="view" aria-label="Enlarge passport">
+        <canvas id="passport-canvas" class="passport-canvas" role="img" aria-label="Your HEMA Space Passport"></canvas>
+        <span class="zoom-hint"><svg class="ico" aria-hidden="true"><use href="#icon-zoom"/></svg>Tap to enlarge</span>
+      </button>
+      <div class="issued-actions">
+        <button class="btn btn-primary btn-lg" data-action="download">Download passport</button>
+        <button class="btn btn-ghost btn-lg" data-action="restart">Create another passport</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 HEMA Astronomical Organization</span>
+    <a class="footer-admin" href="admin/">
+      <svg class="ico" aria-hidden="true"><use href="#icon-lock"/></svg>Admin
+    </a>
+  </footer>
+
+  <!-- full-screen passport viewer -->
+  <dialog id="viewer" class="viewer" aria-label="Passport">
+    <img id="viewer-img" alt="Your HEMA Space Passport">
+    <button type="button" class="viewer-close" data-action="close-viewer" aria-label="Close">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </dialog>
+
+  <!-- fallback emblem, replaced automatically when assets/hema-logo.png exists -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="emblem-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1dca6"/><stop offset="1" stop-color="#9c7a38"/></linearGradient>
+      <symbol id="icon-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+      <symbol id="icon-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></g></symbol>
+      <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 2.5c.6 4.8 1.9 7.4 9.5 9.5-7.6 2.1-8.9 4.7-9.5 9.5-.6-4.8-1.9-7.4-9.5-9.5 7.6-2.1 8.9-4.7 9.5-9.5z" fill="currentColor"/></symbol>
+      <symbol id="icon-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></g></symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4.5 15v3a2.5 2.5 0 0 0 2.5 2.5h10a2.5 2.5 0 0 0 2.5-2.5v-3"/></g></symbol>
+      <symbol id="icon-zoom" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20.5 20.5M10.5 7.5v6M7.5 10.5h6"/></g></symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6"/></g></symbol>
+      <symbol id="icon-rocket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c3.2 2.2 4.8 5.6 4.8 9.6v3.4H7.2v-3.4c0-4 1.6-7.4 4.8-9.6z"/><circle cx="12" cy="9.5" r="1.8"/><path d="M7.2 12.8 4.5 15.5v3h2.7M16.8 12.8l2.7 2.7v3h-2.7M10 18.5c0 1.6.8 2.6 2 3.3 1.2-.7 2-1.7 2-3.3"/></g></symbol>
+      <symbol id="icon-passport" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.2"/><circle cx="12" cy="10" r="3.4"/><path d="M8.6 10h6.8M12 6.6c-1.2 1-1.2 5.8 0 6.8M12 6.6c1.2 1 1.2 5.8 0 6.8M9 17.5h6"/></g></symbol>
+      <symbol id="emblem" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="29" fill="none" stroke="url(#emblem-gold)" stroke-width="2.4"/>
+        <circle cx="32" cy="32" r="24.5" fill="none" stroke="url(#emblem-gold)" stroke-width="0.8"/>
+        <ellipse cx="32" cy="32" rx="21" ry="8" fill="none" stroke="url(#emblem-gold)" stroke-width="1.4" transform="rotate(-26 32 32)"/>
+        <circle cx="32" cy="32" r="6" fill="url(#emblem-gold)"/>
+        <path d="M45 13c0 4 1 5 5 5-4 0-5 1-5 5 0-4-1-5-5-5 4 0 5-1 5-5z" fill="url(#emblem-gold)"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/starfield.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
