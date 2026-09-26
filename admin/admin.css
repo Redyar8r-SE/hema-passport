@@ -124,6 +124,7 @@ body.admin { min-height: 100dvh; }
   overflow: auto;
   background: var(--panel-solid); color: var(--text); box-shadow: 0 40px 140px rgba(0, 0, 0, 0.8);
 }
+.detail:not([open]) { display: none; } /* older browsers without <dialog> support */
 .detail::backdrop { background: rgba(2, 4, 10, 0.82); backdrop-filter: blur(6px); }
 .detail-box { padding: clamp(18px, 3vw, 30px); display: grid; gap: 20px; border: 1px solid var(--line-2); border-radius: 24px; }
 .detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }

@@ -5,7 +5,9 @@
   const $ = (sel) => document.querySelector(sel);
   const db = H.db;
   const REFRESH_MS = 10000;
-  const state = { rows: [], maxId: 0, first: true, timer: null, query: '', open: null, logos: null, loading: false };
+  const FULL_RELOAD_MS = 5 * 60 * 1000; // also picks up passports deleted on another device
+  const OVERLAP = 200;                   // re-check the newest ids: an earlier id can finish saving after a later one
+  const state = { rows: [], maxId: 0, first: true, timer: null, query: '', open: null, logos: null, loading: false, lastFull: 0 };
   // <dialog> needs iOS 15.4+; older browsers get the same window via the open attribute.
   const openDialog = (d) => { if (typeof d.showModal === 'function') d.showModal(); else { d.classList.add('is-fallback'); d.setAttribute('open', ''); } };
   const closeDialog = (d) => {
@@ -28,7 +30,7 @@
   async function showDash() {
     showOnly('#dash');
     $('#who').textContent = db.currentEmail() || 'Passport admin';
-    state.rows = []; state.maxId = 0; state.first = true;
+    state.rows = []; state.maxId = 0; state.first = true; state.lastFull = 0;
     try {
       $('#not-admin').hidden = await db.isAdmin();
     } catch (e) { if (e instanceof db.SignedOut) return showLogin(); }
@@ -72,18 +74,33 @@
   };
   const todayErbil = () => new Date(Date.now() + 3 * 3600_000).toISOString().slice(0, 10); // Erbil is UTC+3 all year
 
-  // First call loads everything; later calls only fetch passports newer than the newest one we have.
+  // Loads everything at first and every 5 minutes; in between, only the newest passports (with some overlap).
   async function load() {
     if (state.loading) return;
     state.loading = true;
     try {
-      const fresh = await db.listPassports(state.maxId);
-      if (fresh.length) {
-        state.rows = [...fresh, ...state.rows];
-        state.maxId = Math.max(state.maxId, ...fresh.map((r) => r.id));
+      const full = !state.maxId || Date.now() - state.lastFull > FULL_RELOAD_MS;
+      if (full) {
+        const all = await db.listPassports(0);
+        const known = new Set(state.rows.map((r) => r.id));
+        const newIds = state.first ? [] : all.filter((r) => !known.has(r.id)).map((r) => r.id);
+        const changed = state.first || newIds.length > 0 || all.length !== state.rows.length;
+        state.rows = all;
+        state.lastFull = Date.now();
+        state.maxId = all.reduce((m, r) => Math.max(m, r.id), 0);
+        setLive(true);
+        if (changed) render(newIds);
+      } else {
+        const recent = await db.listPassports(Math.max(0, state.maxId - OVERLAP));
+        const known = new Set(state.rows.map((r) => r.id));
+        const fresh = recent.filter((r) => !known.has(r.id));
+        setLive(true);
+        if (fresh.length) {
+          state.rows = [...fresh, ...state.rows].sort((a, b) => b.id - a.id);
+          state.maxId = Math.max(state.maxId, ...fresh.map((r) => r.id));
+          render(fresh.map((r) => r.id));
+        }
       }
-      setLive(true);
-      render(fresh.map((r) => r.id));
     } catch (e) {
       if (!handle(e)) setLive(false);
     } finally {
@@ -185,7 +202,7 @@
   function csvCell(v) {
     let s = String(v == null ? '' : v);
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // stop spreadsheets from running formulas
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   }
   $('#export').addEventListener('click', () => {
     const head = ['Passport number', 'First name', 'Second name', 'Third name', 'Age', 'City / Country', 'Callsign',

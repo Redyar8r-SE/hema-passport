@@ -409,6 +409,7 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
   background: rgba(2, 4, 10, 0.94); color: var(--text); overflow: hidden;
 }
 .viewer[open] { display: block; }
+.viewer:not([open]) { display: none; } /* older browsers without <dialog> support */
 .viewer::backdrop { background: rgba(2, 4, 10, 0.9); }
 .viewer img {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);

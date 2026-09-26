@@ -309,19 +309,27 @@ window.HEMA = window.HEMA || {};
     opts = opts || {};
     await fontsReady();
     const logo = opts.logo || null;
-    const imgs = new Map();
-    await Promise.all([...photos].map(async ([id, src]) => { if (/^data:image\/jpeg;base64,/.test(src)) { const im = await H.loadImage(src); if (im) imgs.set(id, im); } }));
+    // Photos are decoded one page at a time (8 at most in memory), so big registers work on phones too.
+    const decode = async (list) => {
+      const out = new Map();
+      await Promise.all(list.map(async (r) => {
+        const src = photos.get(r.id);
+        if (src && /^data:image\/jpeg;base64,/.test(src)) { const im = await H.loadImage(src); if (im) out.set(r.id, im); }
+      }));
+      return out;
+    };
+    const withPhoto = rows.filter((r) => photos.has(r.id)).length;
     const listPages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
     const pages = 1 + (rows.length ? listPages : 0);
     const meta = { generated: new Date().toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), by: opts.by || '' };
     const images = [];
     const add = async (canvas) => { images.push({ data: await toJpeg(canvas), w: canvas.width, h: canvas.height }); canvas.width = canvas.height = 0; };
-    await add(coverPage(rows, imgs.size, logo, meta, pages));
+    await add(coverPage(rows, withPhoto, logo, meta, pages));
     if (opts.onProgress) opts.onProgress(1 / pages);
     if (rows.length) {
       for (let p = 0; p < listPages; p++) {
         const slice = rows.slice(p * PER_PAGE, (p + 1) * PER_PAGE);
-        await add(listPage(slice, p * PER_PAGE, imgs, logo, p + 2, pages));
+        await add(listPage(slice, p * PER_PAGE, await decode(slice), logo, p + 2, pages));
         if (opts.onProgress) opts.onProgress((p + 2) / pages);
         await new Promise((r) => setTimeout(r, 0)); // keep the page responsive
       }

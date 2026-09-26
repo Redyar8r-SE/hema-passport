@@ -131,7 +131,7 @@ begin
       v_serial := lpad((1 + floor(random() * 999999))::int::text, 6, '0');
       exit when not exists (select 1 from public.passports p where p.serial = v_serial);
       v_tries := v_tries + 1;
-      if v_tries > 50 then raise exception 'Could not allocate a passport number'; end if;
+      if v_tries > 50 then raise exception 'Could not allocate a passport number' using errcode = '55000'; end if;
     end loop;
   end if;
 
@@ -149,8 +149,13 @@ begin
             case when v_offline and p_created between now() - interval '30 days' and now() then p_created else now() end,
             v_offline, p_photo, p_photo_thumb, p_client_id);
   exception when unique_violation then
-    -- the same passport arrived twice at the same moment: return the one that was saved
-    select p.serial, p.issued into v_serial, v_issued from public.passports p where p.client_id = p_client_id;
+    -- the same passport arrived twice at the same moment: return the one that was saved,
+    -- keeping it in step with the number printed on the visitor's passport (offline retry)
+    select p.id, p.serial, p.issued into v_id, v_serial, v_issued from public.passports p where p.client_id = p_client_id;
+    if v_offline and v_serial <> p_serial then
+      update public.passports set serial = p_serial, offline = true where id = v_id;
+      v_serial := p_serial;
+    end if;
   end;
 
   return json_build_object('serial', v_serial, 'issued', v_issued);

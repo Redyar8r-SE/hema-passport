@@ -165,10 +165,17 @@
   const QUEUE_KEY = 'hema-pending';
 
   function readQueue() { try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e) { return []; } }
+  // If the device's storage is full, give up photos starting with the newest record, so the details of
+  // every passport are always kept (a record without photos is under 1 KB).
   function writeQueue(q) {
-    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); }
-    catch (e) { // storage full: keep the data, drop the photos
-      try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q.map((r) => ({ ...r, photo: null, thumb: null })))); } catch (e2) { /* give up */ }
+    const tryWrite = (list) => { try { localStorage.setItem(QUEUE_KEY, JSON.stringify(list)); return true; } catch (e) { return false; } };
+    if (tryWrite(q)) return;
+    const list = q.map((r) => ({ ...r }));
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (list[i].photo) { list[i].photo = null; if (tryWrite(list)) return; }
+    }
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (list[i].thumb) { list[i].thumb = null; if (tryWrite(list)) return; }
     }
   }
 
@@ -254,6 +261,7 @@
         bar.style.width = ((i + 1) / steps.length) * 100 + '%';
       }
       await rendering;
+      state.blob = await passportBlob();
       await wait(350);
       if (state.passport !== p) return; // reset while generating
       $('#issued-callsign').textContent = p.callsign;
@@ -268,8 +276,10 @@
 
   async function download() {
     if (!state.passport) return;
-    const blob = await passportBlob();
+    // Use the image made right after drawing: iPhone only opens the share sheet straight from a tap.
+    const blob = state.blob || await passportBlob();
     if (!blob) return;
+    state.downloaded = true;
     const name = `HEMA-Space-Passport-${H.CONFIG.NUMBER_PREFIX}${state.passport.serial}.png`;
     // Phones: the share sheet offers "Save image" straight to the photo gallery.
     if (isTouch && navigator.canShare) {
@@ -290,7 +300,7 @@
   let viewerUrl = null;
   async function openViewer() {
     if (!state.passport) return;
-    const blob = await passportBlob();
+    const blob = state.blob || await passportBlob();
     if (!blob) return;
     if (viewerUrl) URL.revokeObjectURL(viewerUrl);
     viewerUrl = URL.createObjectURL(blob);
@@ -304,7 +314,7 @@
     $$('form').forEach((f) => f.reset());
     $$('.invalid').forEach((el) => el.classList.remove('invalid'));
     if (state.photoUrl) URL.revokeObjectURL(state.photoUrl);
-    state.photo = null; state.photoUrl = null; state.passport = null;
+    state.photo = null; state.photoUrl = null; state.passport = null; state.blob = null; state.downloaded = false;
     const prev = $('#photo-preview'); prev.hidden = true; prev.removeAttribute('src');
     $('#photo-empty').hidden = false;
     $('#photo-upload-label').textContent = 'Upload photo';
@@ -371,7 +381,10 @@
     if ($('#viewer').open || $('#viewer').hasAttribute('open')) { closeViewer(); show(screen); return; } // Back closes the big passport first
     if (screen === 'generating') { show('generating'); return; } // can't step back while the passport is being made
     if (screen === 'identity') show('personal');
-    else if (screen === 'issued') reset();
+    else if (screen === 'issued') {
+      if (state.downloaded || confirm('Leave your passport? Tap "Download passport" first if you want to keep it.')) reset();
+      else show('issued'); // stay (show() puts the Back catcher back)
+    }
     else show('welcome');
   });
   $('#viewer').addEventListener('click', (e) => { if (e.target === e.currentTarget || e.target.id === 'viewer-img') closeViewer(); });

@@ -60,8 +60,9 @@ window.HEMA = window.HEMA || {};
         r = await send();
       }
       if (r.ok && r.data && r.data.serial) return r.data;
-      if (r.status === 400) return { rejected: true };
-      return null;
+      // Only "Invalid passport data" (code 22023) means the record itself is bad and must not be retried.
+      if (r.status === 400 && r.data && r.data.code === '22023') return { rejected: true };
+      return null; // anything else (offline, server busy, database paused): keep it and try again later
     } catch (e) {
       return null;
     }
@@ -127,18 +128,19 @@ window.HEMA = window.HEMA || {};
     issued: x.issued, createdAt: x.created_at, offline: x.offline, thumb: x.photo_thumb || null,
   });
 
-  // All passports newer than afterId (0 = everything), newest first.
+  // All passports with id > afterId (0 = everything), newest first.
+  // Pages by id ("everything older than the last one I got"), so rows added meanwhile can't shift or repeat,
+  // and it keeps going until a page comes back empty, whatever the server's page-size limit is.
   db.listPassports = async function (afterId) {
     const rows = [];
-    const page = 1000;
-    for (let from = 0; ; from += page) {
-      const filter = afterId ? `&id=gt.${Number(afterId)}` : '';
-      const r = await adminRequest(`/rest/v1/passports?select=${LIST_COLUMNS}${filter}&order=id.desc`, {
-        headers: { Range: `${from}-${from + page - 1}`, 'Range-Unit': 'items' },
-      });
+    let before = null;
+    for (let guard = 0; guard < 1000; guard++) {
+      const filter = (afterId ? `&id=gt.${Number(afterId)}` : '') + (before ? `&id=lt.${before}` : '');
+      const r = await adminRequest(`/rest/v1/passports?select=${LIST_COLUMNS}${filter}&order=id.desc&limit=1000`);
       const batch = Array.isArray(r.data) ? r.data : [];
+      if (!batch.length) break;
       rows.push(...batch.map(toRow));
-      if (batch.length < page) break;
+      before = batch[batch.length - 1].id;
     }
     return rows;
   };
