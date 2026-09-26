@@ -4,6 +4,6 @@
    Never put a password here. */
 window.HEMA = window.HEMA || {};
 window.HEMA.SUPABASE = {
-  url: '',  // e.g. 'https://abcdefghijkl.supabase.co'
-  key: '',  // the "anon public" or "publishable" key
+  url: 'https://vraoexboufztorhdefzn.supabase.co',
+  key: 'sb_publishable_1CRlcWZWvNYPaFW_YBU9iQ_MyqVF_Jq',  // publishable key (safe to share)
 };
