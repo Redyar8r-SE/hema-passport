@@ -318,7 +318,7 @@ window.HEMA = window.HEMA || {};
       }));
       return out;
     };
-    const withPhoto = rows.filter((r) => photos.has(r.id)).length;
+    const withPhoto = rows.filter((r) => /^data:image\/jpeg;base64,/.test(photos.get(r.id) || '')).length;
     const listPages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
     const pages = 1 + (rows.length ? listPages : 0);
     const meta = { generated: new Date().toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), by: opts.by || '' };

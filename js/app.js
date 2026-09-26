@@ -261,9 +261,9 @@
         bar.style.width = ((i + 1) / steps.length) * 100 + '%';
       }
       await rendering;
-      state.blob = await passportBlob();
       await wait(350);
       if (state.passport !== p) return; // reset while generating
+      state.blob = await passportBlob();
       $('#issued-callsign').textContent = p.callsign;
       show('issued');
     } finally {
@@ -279,20 +279,20 @@
     // Use the image made right after drawing: iPhone only opens the share sheet straight from a tap.
     const blob = state.blob || await passportBlob();
     if (!blob) return;
-    state.downloaded = true;
     const name = `HEMA-Space-Passport-${H.CONFIG.NUMBER_PREFIX}${state.passport.serial}.png`;
     // Phones: the share sheet offers "Save image" straight to the photo gallery.
     if (isTouch && navigator.canShare) {
       const file = new File([blob], name, { type: 'image/png' });
       if (navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: 'My HEMA Space Passport' }); return; }
-        catch (e) { if (e.name === 'AbortError') return; }
+        try { await navigator.share({ files: [file], title: 'My HEMA Space Passport' }); state.downloaded = true; return; }
+        catch (e) { if (e.name === 'AbortError') return; } // closed the share sheet: not saved
       }
     }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = name;
     document.body.append(a); a.click(); a.remove();
+    state.downloaded = true;
     setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
 
@@ -382,7 +382,8 @@
     if (screen === 'generating') { show('generating'); return; } // can't step back while the passport is being made
     if (screen === 'identity') show('personal');
     else if (screen === 'issued') {
-      if (state.downloaded || confirm('Leave your passport? Tap "Download passport" first if you want to keep it.')) reset();
+      // (not on the shared kiosk: an unanswered question there would stop it resetting for the next visitor)
+      if (KIOSK || state.downloaded || confirm('Leave your passport? Tap "Download passport" first if you want to keep it.')) reset();
       else show('issued'); // stay (show() puts the Back catcher back)
     }
     else show('welcome');

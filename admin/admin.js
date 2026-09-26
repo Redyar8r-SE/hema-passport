@@ -7,7 +7,7 @@
   const REFRESH_MS = 10000;
   const FULL_RELOAD_MS = 5 * 60 * 1000; // also picks up passports deleted on another device
   const OVERLAP = 200;                   // re-check the newest ids: an earlier id can finish saving after a later one
-  const state = { rows: [], maxId: 0, first: true, timer: null, query: '', open: null, logos: null, loading: false, lastFull: 0 };
+  const state = { rows: [], maxId: 0, first: true, timer: null, query: '', open: null, logos: null, loading: false, lastFull: 0, deleted: new Set() };
   // <dialog> needs iOS 15.4+; older browsers get the same window via the open attribute.
   const openDialog = (d) => { if (typeof d.showModal === 'function') d.showModal(); else { d.classList.add('is-fallback'); d.setAttribute('open', ''); } };
   const closeDialog = (d) => {
@@ -30,7 +30,7 @@
   async function showDash() {
     showOnly('#dash');
     $('#who').textContent = db.currentEmail() || 'Passport admin';
-    state.rows = []; state.maxId = 0; state.first = true; state.lastFull = 0;
+    state.rows = []; state.maxId = 0; state.first = true; state.lastFull = 0; state.deleted = new Set();
     try {
       $('#not-admin').hidden = await db.isAdmin();
     } catch (e) { if (e instanceof db.SignedOut) return showLogin(); }
@@ -81,7 +81,7 @@
     try {
       const full = !state.maxId || Date.now() - state.lastFull > FULL_RELOAD_MS;
       if (full) {
-        const all = await db.listPassports(0);
+        const all = (await db.listPassports(0)).filter((r) => !state.deleted.has(r.id));
         const known = new Set(state.rows.map((r) => r.id));
         const newIds = state.first ? [] : all.filter((r) => !known.has(r.id)).map((r) => r.id);
         const changed = state.first || newIds.length > 0 || all.length !== state.rows.length;
@@ -91,9 +91,10 @@
         setLive(true);
         if (changed) render(newIds);
       } else {
-        const recent = await db.listPassports(Math.max(0, state.maxId - OVERLAP));
+        // cheap check first (ids only); full rows only for passports we don't have yet
         const known = new Set(state.rows.map((r) => r.id));
-        const fresh = recent.filter((r) => !known.has(r.id));
+        const missing = (await db.recentIds(Math.max(0, state.maxId - OVERLAP))).filter((id) => !known.has(id) && !state.deleted.has(id));
+        const fresh = missing.length ? (await db.getRows(missing)).filter((r) => !known.has(r.id)) : [];
         setLive(true);
         if (fresh.length) {
           state.rows = [...fresh, ...state.rows].sort((a, b) => b.id - a.id);
@@ -325,6 +326,7 @@
     if (!confirm(`Delete passport ${H.CONFIG.NUMBER_PREFIX}${r.serial} for ${fullName(r)}?\nThis cannot be undone.`)) return;
     try {
       await db.deletePassport(r.id);
+      state.deleted.add(r.id); // so a refresh that was already on its way can't bring it back
       state.rows = state.rows.filter((x) => x.id !== r.id);
       closeDialog($('#detail'));
       render([]);

@@ -60,8 +60,9 @@ window.HEMA = window.HEMA || {};
         r = await send();
       }
       if (r.ok && r.data && r.data.serial) return r.data;
-      // Only "Invalid passport data" (code 22023) means the record itself is bad and must not be retried.
-      if (r.status === 400 && r.data && r.data.code === '22023') return { rejected: true };
+      // Data errors (SQLSTATE class 22, e.g. "Invalid passport data" 22023) and integrity errors (class 23)
+      // mean the record itself is bad: retrying would never help, so it is dropped.
+      if (r.status === 400 && r.data && /^2[23]/.test(String(r.data.code || ''))) return { rejected: true };
       return null; // anything else (offline, server busy, database paused): keep it and try again later
     } catch (e) {
       return null;
@@ -143,6 +144,23 @@ window.HEMA = window.HEMA || {};
       before = batch[batch.length - 1].id;
     }
     return rows;
+  };
+
+  // Just the ids newer than afterId (tiny request, used to notice passports that finished saving late).
+  db.recentIds = async function (afterId) {
+    const r = await adminRequest(`/rest/v1/passports?select=id&id=gt.${Number(afterId)}&order=id.desc&limit=1000`);
+    return (Array.isArray(r.data) ? r.data : []).map((x) => x.id);
+  };
+
+  // Full list rows for the given ids.
+  db.getRows = async function (ids) {
+    const out = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const batch = ids.slice(i, i + 100).map(Number).filter(Number.isFinite);
+      const r = await adminRequest(`/rest/v1/passports?select=${LIST_COLUMNS}&id=in.(${batch.join(',')})&order=id.desc`);
+      out.push(...(Array.isArray(r.data) ? r.data : []).map(toRow));
+    }
+    return out;
   };
 
   // Can this account see the passports? (Signed in with an email that is not in the admins list → false.)
