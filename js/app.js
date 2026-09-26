@@ -8,12 +8,30 @@
   // Kurdish and Persian keyboards type ٠-٩ / ۰-۹; normalise them to 0-9.
   const toLatinDigits = (s) => String(s).replace(/[٠-٩]/g, (d) => d.charCodeAt(0) - 0x660).replace(/[۰-۹]/g, (d) => d.charCodeAt(0) - 0x6f0);
   const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  // Kiosk mode (open the site once with ?kiosk on the festival screen; the device remembers it, ?kiosk=off undoes it).
+  // Only kiosks go back to the welcome screen after inactivity: on a visitor's own phone that would lose their passport.
+  const KIOSK = (() => {
+    const q = new URLSearchParams(location.search).get('kiosk');
+    try {
+      if (q === 'off' || q === '0') localStorage.removeItem('hema-kiosk');
+      else if (q !== null) localStorage.setItem('hema-kiosk', '1');
+      return localStorage.getItem('hema-kiosk') === '1';
+    } catch (e) { return q !== null && q !== 'off' && q !== '0'; }
+  })();
+  const newClientId = () => (crypto.randomUUID ? crypto.randomUUID()
+    : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join(''));
+  const openDialog = (d) => { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); };
+  const closeDialog = (d) => { if (typeof d.close === 'function') { if (d.open) d.close(); } else d.removeAttribute('open'); };
 
   const state = { photo: null, photoUrl: null, passport: null, busy: false, logos: { hema: null, kaf: null } };
 
   /* ---------- screens ---------- */
   function current() { const s = $('.screen.is-active'); return s ? s.id.replace('screen-', '') : ''; }
+  // The phone's Back button (or iPhone swipe back) steps back one screen instead of leaving the site.
+  let inFlow = false; // true while an extra history entry catches the Back button
   function show(name) {
+    if (name !== 'welcome' && !inFlow) { history.pushState({ hemaFlow: true }, ''); inFlow = true; }
+    if (name === 'welcome' && inFlow) { inFlow = false; history.back(); }
     $$('.screen').forEach((s) => s.classList.toggle('is-active', s.id === 'screen-' + name));
     window.scrollTo(0, 0);
     const focusTarget = $('#screen-' + name + ' h1, #screen-' + name + ' h2');
@@ -88,7 +106,7 @@
   function validateIdentity() {
     const cs = H.cleanCallsign($('#f-callsign').value);
     const checks = [['#group-dest', radio('dest') !== null], ['#group-role', radio('role') !== null],
-      ['#group-mission', radio('mission') !== null], ['#group-callsign', cs.length > 0]];
+      ['#group-mission', radio('mission') !== null], ['#group-callsign', /[\p{L}\p{N}]/u.test(cs)]];
     let firstBad = null;
     checks.forEach(([sel, ok]) => {
       $(sel).classList.toggle('invalid', !ok);
@@ -203,6 +221,7 @@
       };
       state.passport = p;
       const saving = savePassport({
+        clientId: newClientId(),
         first, second, third, age: p.age, origin: p.origin, callsign: p.callsign,
         dest: p.dest, role: p.role, mission: p.mission,
         photo: photoJpeg(360, 480, 0.82), thumb: photoJpeg(96, 128, 0.7),
@@ -276,12 +295,9 @@
     if (viewerUrl) URL.revokeObjectURL(viewerUrl);
     viewerUrl = URL.createObjectURL(blob);
     $('#viewer-img').src = viewerUrl;
-    $('#viewer').showModal();
+    openDialog($('#viewer'));
   }
-  function closeViewer() {
-    const d = $('#viewer');
-    if (d.open) d.close();
-  }
+  function closeViewer() { closeDialog($('#viewer')); }
 
   function reset() {
     closeViewer();
@@ -301,7 +317,7 @@
   ['pointerdown', 'keydown', 'input', 'scroll'].forEach((ev) => window.addEventListener(ev, () => { lastActivity = Date.now(); }, { passive: true, capture: true }));
   setInterval(() => {
     const limit = H.CONFIG.IDLE_RESET_SECONDS * 1000;
-    if (!limit || state.busy || current() === 'welcome') return;
+    if (!KIOSK || !limit || state.busy || current() === 'welcome') return;
     if (Date.now() - lastActivity > limit) reset();
   }, 5000);
 
@@ -347,6 +363,16 @@
     const pos = e.target.selectionStart;
     e.target.value = upper;
     try { e.target.setSelectionRange(pos, pos); } catch (err) { /* ignore */ }
+  });
+  window.addEventListener('popstate', () => {
+    if (!inFlow) return; // our own history.back() after returning to the welcome screen
+    inFlow = false;
+    const screen = current();
+    if ($('#viewer').open || $('#viewer').hasAttribute('open')) { closeViewer(); show(screen); return; } // Back closes the big passport first
+    if (screen === 'generating') { show('generating'); return; } // can't step back while the passport is being made
+    if (screen === 'identity') show('personal');
+    else if (screen === 'issued') reset();
+    else show('welcome');
   });
   $('#viewer').addEventListener('click', (e) => { if (e.target === e.currentTarget || e.target.id === 'viewer-img') closeViewer(); });
 

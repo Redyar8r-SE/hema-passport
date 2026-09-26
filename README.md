@@ -43,6 +43,17 @@ To add another organiser later: create their user as in step 3, then run this in
    - Visitors: that address (share it as a QR code or poster at the festival).
    - Admin: the **Admin** button in the footer, or `https://<your-username>.github.io/<repository-name>/admin/`
 
+## The festival kiosk (a shared screen)
+
+Open the site once on the kiosk with `?kiosk` at the end:
+`https://<your-username>.github.io/<repository-name>/?kiosk`
+
+The device remembers it. In kiosk mode the site returns to the welcome screen after 3 minutes without use (`IDLE_RESET_SECONDS` in `js/data.js`), so the next visitor starts fresh. Visitors' own phones never do this, so nobody loses their passport by switching apps. To turn kiosk mode off on a device, open the site once with `?kiosk=off`.
+
+## Updating the database script
+
+When `supabase/setup.sql` changes, run it again the same way (SQL Editor → New query → paste → Run). It is safe to run any number of times and keeps all saved passports. The site keeps working with the older version in the meantime.
+
 ## Using the admin page
 
 - Sign in with the email and password from step 3. You stay signed in on that device until you press **Sign out**.
@@ -62,7 +73,8 @@ The site keeps working. The passport is issued with a number made on the device,
 ## Notes
 
 - Passport numbers are `HEMA-KAF-2026-NNNNNN`, unique across all devices.
-- After 3 minutes without interaction a kiosk returns to the welcome screen (`IDLE_RESET_SECONDS` in `js/data.js`).
+- A passport is never saved twice, even if the Wi-Fi drops just as it is being sent.
+- The phone's Back button steps back one screen instead of leaving the site.
 - Supabase's free plan pauses a project after about a week with no activity. Open the admin page before the festival to wake it, or check Supabase's current plan details.
 - Add `assets/kaf-logo.png` for the festival logo; until then a built-in KAF badge is shown.
 - To test on your computer, run any static server in this folder, e.g. `npx serve .`, and open the address it prints.

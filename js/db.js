@@ -11,6 +11,8 @@ window.HEMA = window.HEMA || {};
   const SESSION_KEY = 'hema-admin-session';
 
   const db = { configured: !!(base && key) };
+  // Set when the database still has the older issue_passport() without duplicate protection.
+  let legacyIssue = false;
 
   async function request(path, { method = 'GET', body, token, headers = {}, timeout = 15000 } = {}) {
     const ctrl = new AbortController();
@@ -41,16 +43,22 @@ window.HEMA = window.HEMA || {};
   db.issuePassport = async function (rec, timeout) {
     if (!db.configured) return null;
     try {
-      const r = await request('/rest/v1/rpc/issue_passport', {
-        method: 'POST', timeout: timeout || 8000,
-        body: {
-          p_first: rec.first, p_second: rec.second, p_third: rec.third || '', p_age: rec.age,
-          p_origin: rec.origin, p_callsign: rec.callsign,
-          p_destination: rec.dest, p_role: rec.role, p_mission: rec.mission,
-          p_photo: rec.photo || null, p_photo_thumb: rec.thumb || null,
-          p_serial: rec.serial || null, p_issued: rec.issued || null, p_created: rec.createdAt || null,
-        },
-      });
+      const body = {
+        p_first: rec.first, p_second: rec.second, p_third: rec.third || '', p_age: rec.age,
+        p_origin: rec.origin, p_callsign: rec.callsign,
+        p_destination: rec.dest, p_role: rec.role, p_mission: rec.mission,
+        p_photo: rec.photo || null, p_photo_thumb: rec.thumb || null,
+        p_serial: rec.serial || null, p_issued: rec.issued || null, p_created: rec.createdAt || null,
+      };
+      if (rec.clientId && !legacyIssue) body.p_client_id = rec.clientId;
+      const send = () => request('/rest/v1/rpc/issue_passport', { method: 'POST', timeout: timeout || 8000, body });
+      let r = await send();
+      // Older database script (before duplicate protection): it doesn't know p_client_id yet, so send without it.
+      if (r.status === 404 && body.p_client_id) {
+        legacyIssue = true;
+        delete body.p_client_id;
+        r = await send();
+      }
       if (r.ok && r.data && r.data.serial) return r.data;
       if (r.status === 400) return { rejected: true };
       return null;
@@ -84,7 +92,8 @@ window.HEMA = window.HEMA || {};
     if (!s) return null;
     if (Date.now() > s.expires - 60000) {
       const r = await request('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: s.refresh } });
-      if (!r.ok) { clearSession(); return null; }
+      if (r.status === 400 || r.status === 401) { clearSession(); return null; } // the login really ended
+      if (!r.ok) throw new Error('Could not refresh the session (' + r.status + ')'); // server trouble: stay signed in
       s = fromAuth(r.data);
       saveSession(s);
     }

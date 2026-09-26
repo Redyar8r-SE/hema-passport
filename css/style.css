@@ -52,6 +52,8 @@ button, input { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 html { -webkit-tap-highlight-color: transparent; }
+/* no double-tap zoom on buttons and choices */
+button, .btn, .opt, a, label, input { touch-action: manipulation; }
 
 /* ---------- top bar ---------- */
 .topbar {
@@ -402,19 +404,20 @@ input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rg
 
 /* ---------- full-screen passport viewer ---------- */
 .viewer {
-  width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+  position: fixed; inset: 0; z-index: 50;
+  width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
   background: rgba(2, 4, 10, 0.94); color: var(--text); overflow: hidden;
 }
 .viewer[open] { display: block; }
 .viewer::backdrop { background: rgba(2, 4, 10, 0.9); }
 .viewer img {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: min(94vw, 90dvh * 1.4286); height: auto; max-width: none; max-height: none;
+  width: min(94vw, 90vh * 1.4286); width: min(94vw, 90dvh * 1.4286); height: auto; max-width: none; max-height: none;
   border-radius: 1.6%/2.3%; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8); cursor: zoom-out;
 }
 /* portrait phones: turn the passport sideways so it fills the screen (1600×1120 card = 1.4286 : 1) */
 @media (orientation: portrait) and (max-width: 820px) {
-  .viewer img { width: min(86dvh, 92vw * 1.4286); transform: translate(-50%, -50%) rotate(90deg); }
+  .viewer img { width: min(86vh, 92vw * 1.4286); width: min(86dvh, 92vw * 1.4286); transform: translate(-50%, -50%) rotate(90deg); }
 }
 .viewer-close {
   position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right));

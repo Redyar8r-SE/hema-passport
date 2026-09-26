@@ -21,8 +21,11 @@ create table if not exists public.passports (
   photo        text,                                -- 360×480 JPEG (data URL)
   photo_thumb  text                                 -- 96×128 JPEG (data URL) for the admin list
 );
+-- added later: a code made by the visitor's device, so a passport sent twice (answer lost on bad Wi-Fi) is saved once
+alter table public.passports add column if not exists client_id text;
 create index if not exists passports_created_idx on public.passports (created_at desc);
 create index if not exists passports_serial_idx  on public.passports (serial);
+create unique index if not exists passports_client_id_key on public.passports (client_id) where client_id is not null;
 
 -- 2. Who may open the admin page ----------------------------------------
 -- Add more organisers later with:  insert into public.admins (email) values ('someone@example.com');
@@ -55,6 +58,8 @@ create policy "admins delete passports" on public.passports for delete to authen
 -- 4. Issuing a passport (called by the website) ---------------------------
 -- Checks the data, gives out a unique passport number and saves the record.
 -- Passports issued while the kiosk was offline arrive later with their number already printed (p_serial).
+-- p_client_id makes it safe to send the same passport twice: the second time returns the first one.
+drop function if exists public.issue_passport(text, text, text, int, text, text, int, int, int, text, text, text, date, timestamptz);
 create or replace function public.issue_passport(
   p_first       text,
   p_second      text,
@@ -69,7 +74,8 @@ create or replace function public.issue_passport(
   p_photo_thumb text        default null,
   p_serial      text        default null,
   p_issued      date        default null,
-  p_created     timestamptz default null
+  p_created     timestamptz default null,
+  p_client_id   text        default null
 ) returns json
 language plpgsql volatile security definer set search_path = public as $$
 declare
@@ -77,7 +83,25 @@ declare
   v_issued  date;
   v_offline boolean := coalesce(p_serial ~ '^[0-9]{6}$', false);
   v_tries   int := 0;
+  v_id      bigint;
 begin
+  if p_client_id is not null and p_client_id !~ '^[A-Za-z0-9-]{8,64}$' then
+    p_client_id := null;
+  end if;
+
+  -- Already saved? (The first try reached the database but the answer was lost.)
+  if p_client_id is not null then
+    select p.id, p.serial, p.issued into v_id, v_serial, v_issued from public.passports p where p.client_id = p_client_id;
+    if found then
+      -- the visitor's passport shows the number printed while offline, so keep the record in step with it
+      if v_offline and v_serial <> p_serial then
+        update public.passports set serial = p_serial, offline = true where id = v_id;
+        v_serial := p_serial;
+      end if;
+      return json_build_object('serial', v_serial, 'issued', v_issued);
+    end if;
+  end if;
+
   p_first    := left(btrim(regexp_replace(coalesce(p_first, ''),    '\s+', ' ', 'g')), 24);
   p_second   := left(btrim(regexp_replace(coalesce(p_second, ''),   '\s+', ' ', 'g')), 24);
   p_third    := left(btrim(regexp_replace(coalesce(p_third, ''),    '\s+', ' ', 'g')), 24);
@@ -117,18 +141,23 @@ begin
     else (now() at time zone 'Asia/Baghdad')::date
   end;
 
-  insert into public.passports (serial, first_name, second_name, third_name, age, origin, callsign,
-                                destination, role, mission, issued, created_at, offline, photo, photo_thumb)
-  values (v_serial, p_first, p_second, p_third, p_age, p_origin, p_callsign,
-          p_destination, p_role, p_mission, v_issued,
-          case when v_offline and p_created between now() - interval '30 days' and now() then p_created else now() end,
-          v_offline, p_photo, p_photo_thumb);
+  begin
+    insert into public.passports (serial, first_name, second_name, third_name, age, origin, callsign,
+                                  destination, role, mission, issued, created_at, offline, photo, photo_thumb, client_id)
+    values (v_serial, p_first, p_second, p_third, p_age, p_origin, p_callsign,
+            p_destination, p_role, p_mission, v_issued,
+            case when v_offline and p_created between now() - interval '30 days' and now() then p_created else now() end,
+            v_offline, p_photo, p_photo_thumb, p_client_id);
+  exception when unique_violation then
+    -- the same passport arrived twice at the same moment: return the one that was saved
+    select p.serial, p.issued into v_serial, v_issued from public.passports p where p.client_id = p_client_id;
+  end;
 
   return json_build_object('serial', v_serial, 'issued', v_issued);
 end;
 $$;
 
-revoke all on function public.issue_passport(text, text, text, int, text, text, int, int, int, text, text, text, date, timestamptz) from public;
-grant execute on function public.issue_passport(text, text, text, int, text, text, int, int, int, text, text, text, date, timestamptz) to anon, authenticated;
+revoke all on function public.issue_passport(text, text, text, int, text, text, int, int, int, text, text, text, date, timestamptz, text) from public;
+grant execute on function public.issue_passport(text, text, text, int, text, text, int, int, int, text, text, text, date, timestamptz, text) to anon, authenticated;
 revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to authenticated;

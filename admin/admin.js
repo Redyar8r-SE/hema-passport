@@ -6,6 +6,12 @@
   const db = H.db;
   const REFRESH_MS = 10000;
   const state = { rows: [], maxId: 0, first: true, timer: null, query: '', open: null, logos: null, loading: false };
+  // <dialog> needs iOS 15.4+; older browsers get the same window via the open attribute.
+  const openDialog = (d) => { if (typeof d.showModal === 'function') d.showModal(); else { d.classList.add('is-fallback'); d.setAttribute('open', ''); } };
+  const closeDialog = (d) => {
+    if (typeof d.close === 'function') { if (d.open) d.close(); }
+    else { d.removeAttribute('open'); d.dispatchEvent(new Event('close')); }
+  };
 
   /* ---------- screens ---------- */
   function showOnly(id) { ['#login', '#setup', '#dash'].forEach((s) => { $(s).hidden = s !== id; }); }
@@ -222,7 +228,7 @@
     }));
     const canvas = $('#d-passport');
     canvas.width = canvas.width; // clear the previous passport
-    $('#detail').showModal();
+    openDialog($('#detail'));
     if (!state.logos) {
       const [hema, kaf] = await Promise.all([H.loadImage('../' + H.CONFIG.LOGO_HEMA), H.loadImage('../' + H.CONFIG.LOGO_FESTIVAL)]);
       state.logos = { hema, kaf };
@@ -247,7 +253,7 @@
     const tr = e.target.closest('tr'); if (!tr) return;
     e.preventDefault(); openDetail(Number(tr.dataset.id));
   });
-  $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget || e.target.closest('[data-close]')) $('#detail').close(); });
+  $('#detail').addEventListener('click', (e) => { if (e.target === e.currentTarget || e.target.closest('[data-close]')) closeDialog($('#detail')); });
   $('#detail').addEventListener('close', () => { state.open = null; });
 
   $('#d-download').addEventListener('click', () => {
@@ -268,7 +274,7 @@
     try {
       await db.deletePassport(r.id);
       state.rows = state.rows.filter((x) => x.id !== r.id);
-      $('#detail').close();
+      closeDialog($('#detail'));
       render([]);
     } catch (e) { if (!handle(e)) alert('Could not delete: ' + e.message); }
   });
