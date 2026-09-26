@@ -55,6 +55,9 @@
         <a class="btn btn-ghost btn-sm" href="../" title="Back to the passport site">
           <svg class="ico" aria-hidden="true"><use href="#i-back"/></svg><span>Back to site</span>
         </a>
+        <button class="btn btn-ghost btn-sm" id="pdf" type="button" title="Download every passport with photos as a PDF">
+          <svg class="ico" aria-hidden="true"><use href="#i-pdf"/></svg><span id="pdf-label">Download PDF</span>
+        </button>
         <button class="btn btn-ghost btn-sm" id="export" type="button">
           <svg class="ico" aria-hidden="true"><use href="#i-download"/></svg><span>Export CSV</span>
         </button>
@@ -138,6 +141,7 @@
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
+      <symbol id="i-pdf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5H7.5A2.5 2.5 0 0 0 5 6v12a2.5 2.5 0 0 0 2.5 2.5h9A2.5 2.5 0 0 0 19 18V8.5z"/><path d="M14 3.5v5h5M9 13.5h6M9 17h4"/></g></symbol>
       <symbol id="i-back" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6 4 12l6 6M4 12h16"/></g></symbol>
       <symbol id="i-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4.5 15v3a2.5 2.5 0 0 0 2.5 2.5h10a2.5 2.5 0 0 0 2.5-2.5v-3"/></g></symbol>
       <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H7A2.5 2.5 0 0 0 4.5 7v10A2.5 2.5 0 0 0 7 19.5h7M16 8l4 4-4 4M20 12H10"/></g></symbol>
@@ -150,6 +154,7 @@
   <script src="../js/data.js"></script>
   <script src="../js/render.js"></script>
   <script src="../js/db.js"></script>
+  <script src="pdf.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

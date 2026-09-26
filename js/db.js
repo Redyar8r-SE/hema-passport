@@ -154,6 +154,19 @@ window.HEMA = window.HEMA || {};
     return (Array.isArray(r.data) && r.data[0] && r.data[0].photo) || null;
   };
 
+  // Full-size photos for many passports at once (for the PDF). Returns Map(id → data URL).
+  db.getPhotos = async function (ids, onBatch) {
+    const out = new Map();
+    const list = ids.map(Number).filter(Number.isFinite);
+    for (let i = 0; i < list.length; i += 40) {
+      const batch = list.slice(i, i + 40);
+      const r = await adminRequest(`/rest/v1/passports?select=id,photo&id=in.(${batch.join(',')})`, { timeout: 30000 });
+      (Array.isArray(r.data) ? r.data : []).forEach((x) => { if (x.photo) out.set(x.id, x.photo); });
+      if (onBatch) onBatch(Math.min(i + 40, list.length), list.length);
+    }
+    return out;
+  };
+
   db.deletePassport = async function (id) {
     await adminRequest(`/rest/v1/passports?id=eq.${Number(id)}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
   };

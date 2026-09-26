@@ -33,10 +33,13 @@ body.admin { min-height: 100dvh; }
 }
 .live.is-off { color: var(--danger); border-color: rgba(255, 138, 122, 0.4); background: rgba(255, 138, 122, 0.08); }
 @media (max-width: 640px) {
-  .dash-actions .btn-sm { width: 42px; padding: 0; }
+  .dash-actions { gap: 6px; }
+  .dash-actions .btn-sm { width: 40px; min-height: 40px; padding: 0; }
   .dash-actions .btn-sm span { display: none; }
-  .live { margin-right: 2px; }
+  .dash .brand-text { display: none; } /* the logo is enough on small screens; the email shows on wider ones */
+  .live { margin-right: 2px; padding: 5px 9px; }
 }
+@media (max-width: 340px) { .live { display: none; } }
 
 /* ---------- layout ---------- */
 .dash-main { max-width: 1400px; margin: 0 auto; padding: 28px var(--gutter) max(48px, calc(env(safe-area-inset-bottom) + 24px)); display: grid; gap: 20px; }

@@ -61,6 +61,7 @@ When `supabase/setup.sql` changes, run it again the same way (SQL Editor → New
 - Search by name, passport number, callsign or city.
 - Click a passport to see it in full with the photo, download it as a PNG, or delete it.
 - **Export CSV** downloads everything for Excel.
+- **Download PDF** makes a printable A4 register: a cover page with totals and charts, then every passport as a card with its photo (8 per page).
 
 ## What is saved
 

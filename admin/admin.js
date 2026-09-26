@@ -205,6 +205,41 @@
     setTimeout(() => URL.revokeObjectURL(url), 30000);
   });
 
+  /* ---------- PDF register (every passport with its photo) ---------- */
+  $('#pdf').addEventListener('click', async () => {
+    const btn = $('#pdf'), label = $('#pdf-label');
+    if (btn.disabled) return;
+    if (!state.rows.length) { alert('There are no passports to download yet.'); return; }
+    btn.disabled = true;
+    const setLabel = (t) => { label.textContent = t; btn.title = t; };
+    try {
+      const rows = [...state.rows].sort((a, b) => a.id - b.id); // oldest first, like a register
+      setLabel('Loading photos');
+      const withPhoto = rows.filter((r) => r.thumb).map((r) => r.id);
+      const photos = await db.getPhotos(withPhoto, (done, total) => setLabel(`Photos ${Math.round((done / total) * 100)}%`));
+      if (!state.logos) {
+        const [hema, kaf] = await Promise.all([H.loadImage('../' + H.CONFIG.LOGO_HEMA), H.loadImage('../' + H.CONFIG.LOGO_FESTIVAL)]);
+        state.logos = { hema, kaf };
+      }
+      setLabel('Making PDF 0%');
+      const blob = await H.buildPassportPdf(rows, photos, {
+        logo: state.logos.hema, by: db.currentEmail(),
+        onProgress: (f) => setLabel(`Making PDF ${Math.round(f * 100)}%`),
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `HEMA-Passport-Register-${todayErbil()}.pdf`;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e) {
+      if (!handle(e)) alert('Could not make the PDF: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      setLabel('Download PDF');
+      btn.title = 'Download every passport with photos as a PDF';
+    }
+  });
+
   /* ---------- detail ---------- */
   async function openDetail(id) {
     const r = state.rows.find((x) => x.id === id);
